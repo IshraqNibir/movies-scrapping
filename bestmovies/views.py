@@ -9,9 +9,10 @@ import csv, urllib.request
 import threading
 
 data = []
-movie_name = []
+movie_name = {}
 user_dict = {}
 rating_dict = {}
+skip = False
 
 def home(request):
     global data
@@ -24,8 +25,12 @@ def home(request):
         page = int(page)
     page_wise_data = data
     if page == 1:
-        th = threading.Thread(target=avg_rating)
-        th.start()
+        global skip
+        if skip == False:
+            skip = True
+            print("Hello Nibir")
+            th = threading.Thread(target=avg_rating)
+            th.start()
         start = -1
     else:
         start = (page - 1) * 20 
@@ -55,7 +60,6 @@ def base_informations():
     rows = table_body.find_all('tr')
     # print(rows[1])
     id = 1
-    global movie_name
     
     for row in rows:
         cols = row.find_all('td')
@@ -70,7 +74,6 @@ def base_informations():
                 if tmp.find('b'):
                     tmp_b = tmp.find('b')
                     movie_text = tmp_b.text
-                    movie_name.append(movie_text)
                     for ln in tmp_b.find_all('a'):
                         movie_link = movie_link + ln.get('href')
                 else:
@@ -106,6 +109,17 @@ def individual_movie_information(request):
     movie = data[index]
     url = movie['link']
 
+    movie_full_name = movie['name']
+    global movie_name
+
+    total_users_vote = None
+    users_avg_rating = None
+    if movie_name.get(movie_full_name):
+        mv_id = movie_name[movie_full_name]
+        total_users_vote = user_dict[mv_id]
+        users_avg_rating = rating_dict[mv_id]
+        print("Got It")
+        
     html_content = requests.get(url).text
 
     # Parse the html content
@@ -148,11 +162,11 @@ def individual_movie_information(request):
 
         movie_data.append(dc_movie)
 
-    # print(movie_data)
     context = {
-        'movie_info': movie_data, 
+        'movie_info': movie_data,
+        'total_users_vote': total_users_vote,
+        'users_avg_rating': users_avg_rating, 
     }
-    # str = avg_rating()
     return HttpResponse(template.render(context, request))
 
 
@@ -167,10 +181,16 @@ def avg_rating():
     lines_ratings = [l.decode('utf-8') for l in response_ratings.readlines()]
     cr_ratings = csv.reader(lines_ratings)
     global user_dict
+    global movie_name
     cnt = 1
 
-    # cereal_df = pd.read_csv("https://school.cefalolab.com/assignment/python/movies.csv")
-    # cereal_df2 = pd.read_csv("https://school.cefalolab.com/assignment/python/ratings.csv")
+    for row in cr_movies:
+        m_id = row[0]
+        m_name = row[1]
+        m_name = m_name[:-7]
+        m_name = m_name.rstrip()
+        m_name = m_name.lstrip()
+        movie_name[m_name] = m_id
 
     for row in cr_ratings:
         if cnt == 1:
