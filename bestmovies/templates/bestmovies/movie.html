@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+                background-color: powderblue;
+                text-align: center;
+            }
+            h1   {color: blue;}
+            p    {color: red;}
+            table.center {
+                margin-left: auto; 
+                margin-right: auto;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>Movie Information</h1>
+        <table style="width:50%" class="center">
+
+            {% for dict_item in movie_info %}
+                {% for key, value in dict_item.items %}
+                    <tr>
+                        <th>{{ key }}</th>
+                        <td>{{ value }}</td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+          </table>
+        <br/>
+        <br/>
+        <!-- <p>This is a paragraph.</p> -->
+    </body>
+</html>

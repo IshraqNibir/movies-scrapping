@@ -92,4 +92,57 @@ def base_informations():
                     
 
 def individual_movie_information(request):
-    return HttpResponse("Info")
+    template = loader.get_template('bestmovies/movie.html')
+    index = int(request.GET.get('id'))
+    index = index - 2
+    global data
+    movie = data[index]
+    url = movie['link']
+
+    html_content = requests.get(url).text
+
+    # Parse the html content
+    soup = BeautifulSoup(html_content, "lxml")
+
+    table = soup.find("table", attrs={"class": "infobox"})
+    table_body = table.find('tbody')
+    rows = table_body.find_all('tr')
+    # print(rows)
+    movie_data = []
+    
+    cnt = 1
+
+    for row in rows:
+        if cnt == 1 or cnt == 2:
+            cnt = cnt + 1
+            continue
+        cnt = cnt + 1
+        cols = row.find_all('td')
+        col_head = row.find('th')
+        dc_movie = {}
+        for col in cols:
+            if col.find('div'):
+                div = col.find('div')
+                if div.find('ul'):
+                    ul = div.find('ul')
+                    list = ul.find_all('li')
+                    values = ''
+                    for li in list:
+                        if values == '':
+                            values = values + li.text
+                        else:
+                            values = values + ',' + li.text
+                    dc_movie[col_head.text] = values
+            else:
+                try:
+                    dc_movie[col_head.text] = col.text
+                except:
+                    pass
+
+        movie_data.append(dc_movie)
+
+    # print(movie_data)
+    context = {
+        'movie_info': movie_data, 
+    }
+    return HttpResponse(template.render(context, request))
