@@ -1,14 +1,17 @@
 from django.shortcuts import render
 import re
-
-# Create your views here.
-
+import csv
 from django.http import HttpResponse
 import requests
 from bs4 import BeautifulSoup
 from django.template import loader
+import csv, urllib.request
+import threading
 
 data = []
+movie_name = []
+user_dict = {}
+rating_dict = {}
 
 def home(request):
     global data
@@ -21,6 +24,8 @@ def home(request):
         page = int(page)
     page_wise_data = data
     if page == 1:
+        th = threading.Thread(target=avg_rating)
+        th.start()
         start = -1
     else:
         start = (page - 1) * 20 
@@ -50,6 +55,7 @@ def base_informations():
     rows = table_body.find_all('tr')
     # print(rows[1])
     id = 1
+    global movie_name
     
     for row in rows:
         cols = row.find_all('td')
@@ -64,6 +70,7 @@ def base_informations():
                 if tmp.find('b'):
                     tmp_b = tmp.find('b')
                     movie_text = tmp_b.text
+                    movie_name.append(movie_text)
                     for ln in tmp_b.find_all('a'):
                         movie_link = movie_link + ln.get('href')
                 else:
@@ -145,4 +152,40 @@ def individual_movie_information(request):
     context = {
         'movie_info': movie_data, 
     }
+    # str = avg_rating()
     return HttpResponse(template.render(context, request))
+
+
+def avg_rating():
+    url_movies = 'https://school.cefalolab.com/assignment/python/movies.csv'
+    response_movies = urllib.request.urlopen(url_movies)
+    lines_movies = [l.decode('utf-8') for l in response_movies.readlines()]
+    cr_movies = csv.reader(lines_movies)
+
+    url_ratings = 'https://school.cefalolab.com/assignment/python/ratings.csv'
+    response_ratings = urllib.request.urlopen(url_ratings)
+    lines_ratings = [l.decode('utf-8') for l in response_ratings.readlines()]
+    cr_ratings = csv.reader(lines_ratings)
+    global user_dict
+    cnt = 1
+
+    # cereal_df = pd.read_csv("https://school.cefalolab.com/assignment/python/movies.csv")
+    # cereal_df2 = pd.read_csv("https://school.cefalolab.com/assignment/python/ratings.csv")
+
+    for row in cr_ratings:
+        if cnt == 1:
+            cnt = cnt + 1
+            continue
+        movie_id = row[1]
+        rating = row[2]
+        if user_dict.get(movie_id):
+            user_dict[movie_id] = user_dict[movie_id] + 1
+            rating_dict[movie_id] = float(rating_dict[movie_id]) + float(rating)
+        else:
+            user_dict[movie_id] =  1
+            rating_dict[movie_id] = float(rating)
+
+    for k in rating_dict.keys():
+        rating_dict[k] = rating_dict[k]/user_dict[k]
+        rating_dict[k] = "{:.2f}".format(rating_dict[k])
+
