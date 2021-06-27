@@ -2,6 +2,10 @@
 
 # No database is used for this project. I used in memory mechanism to execute the scripts faster.
 
+# Framework used Django
+
+The libraries and the versions of the libraries are given in requirements.txt file.
+
 To run the project please create a virtual environment and install the dependencies using the command:
  # "pip install -r requirements.txt"
   
