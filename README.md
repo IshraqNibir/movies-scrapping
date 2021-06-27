@@ -1,8 +1,11 @@
-# Project is done using python version 3.9.0
+First clone the project using the command:
+ # "git clone https://github.com/IshraqNibir/cefalo-assignment.git"
 
-# No database is used for this project. I used in memory mechanism to execute the scripts faster.
+Project is done using python version 3.9.0
 
-# Framework used Django
+No database is used for this project. I used in memory mechanism to execute the scripts faster.
+
+Framework used Django
 
 The libraries and the versions of the libraries are given in requirements.txt file.
 
